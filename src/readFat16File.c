@@ -1,16 +1,10 @@
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <time.h>
-#include <unistd.h>
+
 #include "readFat16File.h"
+#include <stdio.h>
+
 
 #define BOOTSECTORSIZE 512
-
-
+#define FATENTRYSIZE 2
 
 void printBootSector(BootSector *bs){    
     printf("OEM Name: %.8s\n", bs->BS_OEMName);
@@ -38,21 +32,21 @@ BootSector *readFat16ImageBootSector(int fd) {
 
     ssize_t bytesRead = read(fd, buffer, BOOTSECTORSIZE);
     if (bytesRead != BOOTSECTORSIZE) {
-        printf("incorrect number of bits read: readFat16File.c");
+        printf("incorrect number of bits read");
     }
 
     memcpy(bs, buffer, sizeof(BootSector));
     return bs;
-
-    close(fd);
 }
 
-void readFat16Fat(int fd){
-    uint16_t fatEntry;
-    lseek(fd, BOOTSECTORSIZE, SEEK_SET);  // Move to FAT start
-
-    for (int i= 0 ; i < 1000; i++) {  // Read first 10 entries
-        read(fd, &fatEntry, 2);
-        printf("Cluster %d → %04X\n", i, fatEntry);
+u_int16_t *readFat16Fat(int fd, BootSector *bs){
+    u_int16_t ReserveSpace = bs->BPB_RsvdSecCnt * bs->BPB_BytsPerSec; //calculates the size of the reserve space before the FAT
+    u_int16_t sizeOfFat = bs->BPB_FATSz16 * bs->BPB_BytsPerSec;
+    u_int16_t *FAT = malloc(sizeOfFat);
+    lseek(fd, ReserveSpace, SEEK_CUR);
+    int byteRead = read(fd, FAT, sizeof(FAT));
+    if (byteRead != sizeOfFat) {
+        perror("error reading FAT section of image");
     }
+    return FAT;
 }

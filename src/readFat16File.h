@@ -1,5 +1,12 @@
+#include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
 typedef struct __attribute__((__packed__)) {
     uint8_t BS_jmpBoot[3];
     uint8_t BS_OEMName[8];
@@ -24,8 +31,8 @@ typedef struct __attribute__((__packed__)) {
 } BootSector;
 
 //BootSector
- BootSector *readFat16ImageBootSector(int fd);
+BootSector *readFat16ImageBootSector(int fd);
 void printBootSector( BootSector *bs);
 
 //FAT
-void readFat16Fat(int fd);
+u_int16_t *readFat16Fat(int fd, BootSector *bs);

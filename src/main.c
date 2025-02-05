@@ -16,6 +16,6 @@ int main(){
         return 1;
     }
     printBootSector(bs);
-    readFat16Fat(fd);
+    readFat16Fat(fd, bs);
     return 0;
 }
