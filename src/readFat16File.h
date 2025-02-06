@@ -7,6 +7,22 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+
+typedef struct __attribute__((__packed__)){
+    uint8_t DIR_Name[ 11 ]; // Non zero terminated string
+    uint8_t DIR_Attr; // File attributes
+    uint8_t DIR_NTRes; // Used by Windows NT, ignore
+    uint8_t DIR_CrtTimeTenth; // Tenths of sec. 0...199
+    uint16_t DIR_CrtTime; // Creation Time in 2s intervals
+    uint16_t DIR_CrtDate; // Date file created
+    uint16_t DIR_LstAccDate; // Date of last read or write
+    uint16_t DIR_FstClusHI; // Top 16 bits file's 1st cluster
+    uint16_t DIR_WrtTime; // Time of last write
+    uint16_t DIR_WrtDate; // Date of last write
+    uint16_t DIR_FstClusLO; // Lower 16 bits file's 1st cluster
+    uint32_t DIR_FileSize; // File size in bytes
+} RootDir;
+
 typedef struct __attribute__((__packed__)) {
     uint8_t BS_jmpBoot[3];
     uint8_t BS_OEMName[8];
@@ -40,4 +56,5 @@ void readCluster(int StartingCluster, u_int16_t *FAT);
 void printNAmountOfFatSection(int n, u_int16_t *FAT);
 
 //Root Dir
-void readRootDir(int fd, BootSector *bs);
+RootDir *readRootDir(int fd, BootSector *bs);
+void printRootDir(RootDir *rDir);

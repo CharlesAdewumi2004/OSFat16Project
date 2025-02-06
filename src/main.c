@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>
 
 #define IMAGENAME "image/fat16.img"
 
@@ -22,11 +23,14 @@ int main(){
         return -1;
     }
     readCluster(5, FAT);
-    printNAmountOfFatSection(100,  FAT);
+    //printNAmountOfFatSection(100,  FAT);
+    RootDir *rDir = readRootDir(fd, bs);
+    printRootDir(rDir);
+    rDir++;
+    printRootDir(rDir);
+   
 
-
-
-
+    close(fd);
     free(bs);
     free(FAT);
     return 0;
