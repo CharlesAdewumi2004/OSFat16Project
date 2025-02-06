@@ -1,5 +1,6 @@
 #include "readFat16File.h"
 #include <fcntl.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -16,6 +17,17 @@ int main(){
         return 1;
     }
     printBootSector(bs);
-    readFat16Fat(fd, bs);
+    uint16_t *FAT = readFat16Fat(fd, bs);
+    if (FAT == NULL) {
+        return -1;
+    }
+    readCluster(5, FAT);
+    printNAmountOfFatSection(100,  FAT);
+
+
+
+
+    free(bs);
+    free(FAT);
     return 0;
-}
+}   

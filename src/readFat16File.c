@@ -1,6 +1,8 @@
 
 #include "readFat16File.h"
+#include <stdint.h>
 #include <stdio.h>
+#include <time.h>
 
 
 #define BOOTSECTORSIZE 512
@@ -21,7 +23,6 @@ void printBootSector(BootSector *bs){
 }
 
 BootSector *readFat16ImageBootSector(int fd) {
-    char buffer[BOOTSECTORSIZE];
     BootSector *bs = malloc(sizeof(BootSector));
     if(bs == NULL){
         perror("error allocating memeory");
@@ -30,12 +31,10 @@ BootSector *readFat16ImageBootSector(int fd) {
 
     lseek(fd, 0, SEEK_SET);
 
-    ssize_t bytesRead = read(fd, buffer, BOOTSECTORSIZE);
-    if (bytesRead != BOOTSECTORSIZE) {
+    ssize_t bytesRead = read(fd, bs, sizeof(*bs));
+    if (bytesRead != sizeof(*bs)) {
         printf("incorrect number of bits read");
     }
-
-    memcpy(bs, buffer, sizeof(BootSector));
     return bs;
 }
 
@@ -43,10 +42,37 @@ u_int16_t *readFat16Fat(int fd, BootSector *bs){
     u_int16_t ReserveSpace = bs->BPB_RsvdSecCnt * bs->BPB_BytsPerSec; //calculates the size of the reserve space before the FAT
     u_int16_t sizeOfFat = bs->BPB_FATSz16 * bs->BPB_BytsPerSec;
     u_int16_t *FAT = malloc(sizeOfFat);
-    lseek(fd, ReserveSpace, SEEK_CUR);
-    int byteRead = read(fd, FAT, sizeof(FAT));
-    if (byteRead != sizeOfFat) {
-        perror("error reading FAT section of image");
+    if (FAT == NULL) {
+        perror("Failed to allocate memory to FAT");
+        return NULL;
     }
+
+    lseek(fd, ReserveSpace, SEEK_SET);
+
+    int byteRead = read(fd, FAT, sizeOfFat);
+    if (byteRead < 0) {
+        perror("error reading FAT section of image");
+        return NULL;
+    }
+    
     return FAT;
+}
+
+void readCluster(int StartingCluster, u_int16_t *FAT) {
+    uint16_t cluster = StartingCluster;
+    printf("Cluster Chain: ");
+    
+    while (cluster < 0xFFF8) { 
+        printf("%u -> ", cluster);
+        cluster = FAT[cluster];  
+    }
+
+    printf("EOF\n");
+}
+
+void printNAmountOfFatSection(int n, u_int16_t *FAT){
+    printf("First %d Enteries\n", n);
+    for(int i = 2; i < n+2; i++){
+        printf("FAT[%d] → 0x%04X\n", i, FAT[i]);
+    }
 }
