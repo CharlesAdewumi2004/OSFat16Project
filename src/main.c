@@ -7,6 +7,8 @@
 
 #define IMAGENAME "image/fat16.img"
 
+
+
 int main(){
     int fd = open(IMAGENAME, O_RDWR);
     if (fd < 0) {
@@ -25,9 +27,11 @@ int main(){
     readCluster(5, FAT);
     //printNAmountOfFatSection(100,  FAT);
     RootDir *rDir = readRootDir(fd, bs);
-    printRootDir(rDir);
-    rDir++;
-    printRootDir(rDir);
+    
+    for (int i = 0; i < 20; i++) {
+        printRootDir(&rDir[i]);
+        printf("------------------------------------------------------\n");
+    }
    
 
     close(fd);

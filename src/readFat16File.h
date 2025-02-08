@@ -8,20 +8,21 @@
 #include <time.h>
 #include <unistd.h>
 
-typedef struct __attribute__((__packed__)){
-    uint8_t DIR_Name[ 11 ]; // Non zero terminated string
-    uint8_t DIR_Attr; // File attributes
-    uint8_t DIR_NTRes; // Used by Windows NT, ignore
-    uint8_t DIR_CrtTimeTenth; // Tenths of sec. 0...199
-    uint16_t DIR_CrtTime; // Creation Time in 2s intervals
-    uint16_t DIR_CrtDate; // Date file created
-    uint16_t DIR_LstAccDate; // Date of last read or write
-    uint16_t DIR_FstClusHI; // Top 16 bits file's 1st cluster
-    uint16_t DIR_WrtTime; // Time of last write
-    uint16_t DIR_WrtDate; // Date of last write
-    uint16_t DIR_FstClusLO; // Lower 16 bits file's 1st cluster
-    uint32_t DIR_FileSize; // File size in bytes
+typedef struct __attribute__((__packed__)) {
+    uint8_t DIR_Name[11];       // 8.3 filename (not null-terminated)
+    uint8_t DIR_Attr;           // File attributes
+    uint8_t DIR_NTRes;          // Reserved for Windows NT
+    uint8_t DIR_CrtTimeTenth;   // Tenth of a second (0-199)
+    uint16_t DIR_CrtTime;       // Creation Time (HH:MM:SS in 2s intervals)
+    uint16_t DIR_CrtDate;       // Creation Date (YYYY-MM-DD)
+    uint16_t DIR_LstAccDate;    // Last Access Date
+    uint16_t DIR_FstClusHI;     // **Always 0 in FAT16** (Only used in FAT32)
+    uint16_t DIR_WrtTime;       // Last Write Time
+    uint16_t DIR_WrtDate;       // Last Write Date
+    uint16_t DIR_FstClusLO;     // First cluster number **(Used in FAT16)**
+    uint32_t DIR_FileSize;      // File size in bytes
 } RootDir;
+
 
 typedef struct __attribute__((__packed__)) {
     uint8_t BS_jmpBoot[3];
@@ -57,4 +58,4 @@ void printNAmountOfFatSection(int n, u_int16_t *FAT);
 
 //Root Dir
 RootDir *readRootDir(int fd, BootSector *bs);
-void printRootDir(RootDir *rDir);
+void printRootDir(RootDir *rDir) ;
