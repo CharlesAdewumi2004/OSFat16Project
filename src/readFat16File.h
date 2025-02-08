@@ -56,6 +56,6 @@ u_int16_t *readFat16Fat(int fd, BootSector *bs);
 void readCluster(int StartingCluster, u_int16_t *FAT);
 void printNAmountOfFatSection(int n, u_int16_t *FAT);
 
-//Root Dir
+//RootDir
 RootDir *readRootDir(int fd, BootSector *bs);
-void printRootDir(RootDir *rDir) ;
+void printRootDir(RootDir *rDir);

@@ -112,7 +112,7 @@ void printRootDir(RootDir *rDir){
     fileName[11] = '\0';         
 
     printf("filename %s\n", fileName);
-    printf("first cluser %u\n", ((rDir->DIR_FstClusHI << 16) | rDir->DIR_FstClusLO));
+    printf("first cluser %u\n", (rDir->DIR_FstClusLO));
     //uint32_t DIR_FileSize = le32toh(rDir->DIR_FileSize);
     //printf("file size %d\n", DIR_FileSize);
     printf("Year %u\n", ((rDir->DIR_CrtDate >> 9)& 0x7F) + 1980);
@@ -128,6 +128,4 @@ void printRootDir(RootDir *rDir){
     printf("%c", (rDir->DIR_Attr & 0x4)  ? 'S': '/');
     printf("%c", (rDir->DIR_Attr & 0x2)  ? 'H': '/');
     printf("%c\n", (rDir->DIR_Attr & 0x1)  ? 'R': '/');
-
-
 }
