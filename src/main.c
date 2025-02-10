@@ -5,6 +5,7 @@
 #include <time.h>
 #include <unistd.h>
 
+
 #define IMAGENAME "image/fat16.img"
 
 
@@ -32,7 +33,8 @@ int main(){
         printRootDir(&rDir[i]);
         printf("------------------------------------------------------\n");
     }
-   
+    
+    openFile(bs,rDir,FAT);
 
     close(fd);
     free(bs);

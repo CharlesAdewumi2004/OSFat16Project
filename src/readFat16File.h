@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include "linkedList.h"
+
 
 typedef struct __attribute__((__packed__)) {
     uint8_t DIR_Name[11];       // 8.3 filename (not null-terminated)
@@ -47,6 +49,14 @@ typedef struct __attribute__((__packed__)) {
     uint8_t BS_FilSysType[8];
 } BootSector;
 
+typedef struct{ 
+    char fullFileName[255];
+    char partialFileName[12];
+    LinkedList *clusterChain;
+    int numOfCluster;
+    char *fileContents;
+}File;
+
 //BootSector
 BootSector *readFat16ImageBootSector(int fd);
 void printBootSector( BootSector *bs);
@@ -55,7 +65,17 @@ void printBootSector( BootSector *bs);
 u_int16_t *readFat16Fat(int fd, BootSector *bs);
 void readCluster(int StartingCluster, u_int16_t *FAT);
 void printNAmountOfFatSection(int n, u_int16_t *FAT);
+void addClustersToLinkedList(int StartingCluster, uint16_t *FAT, LinkedList *root);
 
 //RootDir
 RootDir *readRootDir(int fd, BootSector *bs);
 void printRootDir(RootDir *rDir);
+RootDir *findFileClusters(const char *fileName, RootDir *rDir, int totalEntries);
+
+//file Handling
+void convertToFat83(const char *filename, char *fatName);
+void getFileName(char inputFileName[255]);
+File *openFile(BootSector *bs, RootDir *rDir, uint16_t *FAT);
+void closeFile(File *file);
+void selectFile(File *file);
+off_t seekFile(off_t offset, File *file, int whence);
