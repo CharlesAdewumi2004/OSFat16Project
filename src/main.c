@@ -31,7 +31,6 @@ int main(){
     
     for (int i = 0; i < 20; i++) {
         printRootDir(&rDir[i]);
-        printf("------------------------------------------------------\n");
     }
     
     openFile(bs,rDir,FAT);

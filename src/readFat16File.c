@@ -127,8 +127,6 @@ RootDir *findFileClusters(const char *fileName, RootDir *rDir, int totalEntries)
         memset(fatFileName, 0, sizeof(fatFileName));
         memcpy(fatFileName, rDir[i].DIR_Name, 11);
         fatFileName[11] = '\0';
-        printf("%s\n",fatFileName);
-        printf("%s\n", fileName);
         if (strncmp(fatFileName, fileName, 8) == 0) {
             printf("WE MADE IT\n");
             return &rDir[i]; 
@@ -141,8 +139,15 @@ RootDir *findFileClusters(const char *fileName, RootDir *rDir, int totalEntries)
 void printRootDir(RootDir *rDir) {
     char fileName[12];
     memcpy(fileName, rDir->DIR_Name, sizeof(rDir->DIR_Name));
-    fileName[11] = '\0';         
+    fileName[11] = '\0'; 
 
+    if(((rDir->DIR_Attr >> 2) & 0x1) || (rDir->DIR_Attr == 0)){
+        return;
+    }
+
+    printf("kappa %d\n", rDir->DIR_Attr);
+
+    printf("------------------------------------------------------\n");
     printf("Filename: %s\n", fileName);
     printf("First Cluster: %u\n", (rDir->DIR_FstClusHI << 16) | rDir->DIR_FstClusLO);
     printf("File Size: %u bytes\n", rDir->DIR_FileSize);
@@ -153,10 +158,10 @@ void printRootDir(RootDir *rDir) {
     printf("Min: %u\n", (rDir->DIR_CrtTime >> 5) & 0x3F);
     printf("Sec: %u\n", (rDir->DIR_CrtTime & 0x1F) * 2);
     printf("Attributes: ");
-    printf("%c-", (rDir->DIR_Attr & 0x20) ? 'A' : '-');
-    printf("%c-", (rDir->DIR_Attr & 0x10) ? 'D' : '-');
-    printf("%c-", (rDir->DIR_Attr & 0x08) ? 'V' : '-');
-    printf("%c-", (rDir->DIR_Attr & 0x04) ? 'S' : '-');
-    printf("%c-", (rDir->DIR_Attr & 0x02) ? 'H' : '-');
+    printf("%c", (rDir->DIR_Attr & 0x20) ? 'A' : '-');
+    printf("%c", (rDir->DIR_Attr & 0x10) ? 'D' : '-');
+    printf("%c", (rDir->DIR_Attr & 0x08) ? 'V' : '-');
+    printf("%c", (rDir->DIR_Attr & 0x04) ? 'S' : '-');
+    printf("%c", (rDir->DIR_Attr & 0x02) ? 'H' : '-');
     printf("%c\n", (rDir->DIR_Attr & 0x01) ? 'R' : '-');
 }

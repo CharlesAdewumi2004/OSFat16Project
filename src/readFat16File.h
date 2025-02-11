@@ -77,5 +77,4 @@ void convertToFat83(const char *filename, char *fatName);
 void getFileName(char inputFileName[255]);
 File *openFile(BootSector *bs, RootDir *rDir, uint16_t *FAT);
 void closeFile(File *file);
-void selectFile(File *file);
-off_t seekFile(off_t offset, File *file, int whence);
+off_t seekFile(BootSector *bs, File *file);

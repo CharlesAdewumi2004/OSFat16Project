@@ -30,14 +30,6 @@ File *openFile(BootSector *bs, RootDir *rDir, uint16_t *FAT) {
     addElementToList(&(file->clusterChain), fileDirEntry->DIR_FstClusLO);
     
     addClustersToLinkedList(fileDirEntry->DIR_FstClusLO, FAT, file->clusterChain);
-    
-    LinkedList *currentNode = file->clusterChain;
-    while(currentNode->Next != NULL){
-        printf("%d->", currentNode->clusterNum);
-        currentNode = currentNode->Next;
-    }
-    
-    readCluster(file->clusterChain->clusterNum, FAT);
 
     return file;
 }
