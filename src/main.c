@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -33,7 +34,24 @@ int main(){
         printRootDir(&rDir[i]);
     }
     
-    openFile(bs,rDir,FAT);
+    File *file = openFile(bs,rDir,FAT);
+    off_t offset = seekFileCluster(bs,file,fd);
+    readFile(file, fd, bs);
+    /*
+    char buffer[bs->BPB_BytsPerSec * bs->BPB_SecPerClus + 1]; 
+    int bytesRead = read(fd, buffer, sizeof(buffer) - 1); 
+    
+    if (bytesRead > 0) {
+        buffer[bytesRead] = '\0';
+        printf("%s", buffer);
+    }else{
+        perror("error reading file");
+    }*/
+    
+
+
+    
+    
 
     close(fd);
     free(bs);

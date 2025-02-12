@@ -49,6 +49,18 @@ typedef struct __attribute__((__packed__)) {
     uint8_t BS_FilSysType[8];
 } BootSector;
 
+typedef struct __attribute__((__packed__)) {
+    uint8_t LDIR_Ord; // Order/ position in sequence/ set
+    uint8_t LDIR_Name1[ 10 ]; // First 5 UNICODE characters
+    uint8_t LDIR_Attr; // = ATTR_LONG_NAME (xx001111)
+    uint8_t LDIR_Type; // Should = 0
+    uint8_t LDIR_Chksum; // Checksum of short name
+    uint8_t LDIR_Name2[ 12 ]; // Middle 6 UNICODE characters
+    uint16_t LDIR_FstClusLO; // MUST be zero
+    uint8_t LDIR_Name3[ 4 ]; // Last 2 UNICODE characters
+
+} LongFileName;
+
 typedef struct{ 
     char fullFileName[255];
     char partialFileName[12];
@@ -72,9 +84,11 @@ RootDir *readRootDir(int fd, BootSector *bs);
 void printRootDir(RootDir *rDir);
 RootDir *findFileClusters(const char *fileName, RootDir *rDir, int totalEntries);
 
+
 //file Handling
 void convertToFat83(const char *filename, char *fatName);
 void getFileName(char inputFileName[255]);
 File *openFile(BootSector *bs, RootDir *rDir, uint16_t *FAT);
 void closeFile(File *file);
-off_t seekFile(BootSector *bs, File *file);
+off_t seekFileCluster(BootSector *bs, File *file, int fd);
+void readFile(File *file,int fd, BootSector *bs);

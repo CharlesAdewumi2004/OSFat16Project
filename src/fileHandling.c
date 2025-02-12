@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <sys/types.h>
 #include <time.h>
 #include "readFat16File.h"
 
@@ -70,11 +71,46 @@ void getFileName(char inputFileName[255]) {
     inputFileName[strcspn(inputFileName, "\n")] = 0;  
 }
 
+// seek for cluser
+off_t seekFileCluster(BootSector *bs, File *file, int fd) {
+    off_t startPoint = bs->BPB_RsvdSecCnt * bs->BPB_BytsPerSec;//bootsector
+
+    startPoint += bs->BPB_FATSz16 * bs->BPB_NumFATs * bs->BPB_BytsPerSec;//fat
+
+    off_t rootDirSize = ((bs->BPB_RootEntCnt * 32) + (bs->BPB_BytsPerSec - 1)) / bs->BPB_BytsPerSec;//root dir
+    startPoint += rootDirSize * bs->BPB_BytsPerSec;
+
+    LinkedList *currentNode = file->clusterChain;
+    uint16_t firstCluster = currentNode->clusterNum;
+    if (firstCluster < 2) {  
+        return -1; 
+    }
+    int offset = startPoint + (firstCluster - 2) * (bs->BPB_SecPerClus * bs->BPB_BytsPerSec);
+    
+    lseek(fd, offset, SEEK_SET);
+
+    return startPoint;
+}
+
+void readFile(File *file,int fd, BootSector *bs){
+    file->fileContents = malloc(bs->BPB_BytsPerSec * bs->BPB_SecPerClus + 1);
+    if (file->fileContents == NULL) {
+        perror("error allocating memeory");
+        return;
+    }
+    int bytesRead = read(fd, file->fileContents, bs->BPB_BytsPerSec * bs->BPB_SecPerClus - 1); 
+    if (bytesRead > 0) {
+        file->fileContents[bytesRead] = '\0';
+        printf("%s", file->fileContents);
+    }else{
+        perror("error reading file");
+    }
+    
+}
+
+
 // Close the file and free memory
 void closeFile(File *file) {
     if (file == NULL) return;
-    
-    
-
     free(file);
 }
