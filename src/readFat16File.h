@@ -59,7 +59,7 @@ typedef struct __attribute__((__packed__)) {
     uint16_t LDIR_FstClusLO; // MUST be zero
     uint8_t LDIR_Name3[ 4 ]; // Last 2 UNICODE characters
 
-} LongFileName;
+}LongRootDir;
 
 typedef struct{ 
     char fullFileName[255];

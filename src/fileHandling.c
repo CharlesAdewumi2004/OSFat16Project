@@ -104,9 +104,9 @@ void readFile(File *file,int fd, BootSector *bs){
         printf("%s", file->fileContents);
     }else{
         perror("error reading file");
-    }
-    
+    }   
 }
+
 
 
 // Close the file and free memory

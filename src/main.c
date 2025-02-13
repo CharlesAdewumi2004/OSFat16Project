@@ -30,28 +30,13 @@ int main(){
     //printNAmountOfFatSection(100,  FAT);
     RootDir *rDir = readRootDir(fd, bs);
     
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < bs->BPB_RootEntCnt; i++) {
         printRootDir(&rDir[i]);
     }
     
     File *file = openFile(bs,rDir,FAT);
-    off_t offset = seekFileCluster(bs,file,fd);
+    seekFileCluster(bs,file,fd);
     readFile(file, fd, bs);
-    /*
-    char buffer[bs->BPB_BytsPerSec * bs->BPB_SecPerClus + 1]; 
-    int bytesRead = read(fd, buffer, sizeof(buffer) - 1); 
-    
-    if (bytesRead > 0) {
-        buffer[bytesRead] = '\0';
-        printf("%s", buffer);
-    }else{
-        perror("error reading file");
-    }*/
-    
-
-
-    
-    
 
     close(fd);
     free(bs);

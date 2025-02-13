@@ -141,7 +141,7 @@ void printRootDir(RootDir *rDir) {
     memcpy(fileName, rDir->DIR_Name, sizeof(rDir->DIR_Name));
     fileName[11] = '\0'; 
 
-    if(((rDir->DIR_Attr >> 2) & 0x1) || (rDir->DIR_Attr == 0)){
+    if(rDir->DIR_Attr == 0x0F || rDir->DIR_Attr == 0x00){
         return;
     }
 
