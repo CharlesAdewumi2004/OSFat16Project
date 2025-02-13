@@ -135,33 +135,62 @@ RootDir *findFileClusters(const char *fileName, RootDir *rDir, int totalEntries)
     return NULL; 
 }
 
-// Print Root Directory Entry
-void printRootDir(RootDir *rDir) {
-    char fileName[12];
-    memcpy(fileName, rDir->DIR_Name, sizeof(rDir->DIR_Name));
-    fileName[11] = '\0'; 
-
-    if(rDir->DIR_Attr == 0x0F || rDir->DIR_Attr == 0x00){
-        return;
+void extractLFNChars(char *buffer, uint8_t *src, int count) {
+    for (int i = 0; i < count; i += 2) {
+        if (src[i] == 0xFF) break;
+        buffer[i / 2] = src[i]; 
     }
+}
 
-    printf("kappa %d\n", rDir->DIR_Attr);
+void printRootDir(RootDir *rDir, int numOfRootEnt) {
+    for (int i = 0; i < numOfRootEnt; i++) {
+        char fileName[12];
+        memcpy(fileName, rDir->DIR_Name, sizeof(rDir->DIR_Name));
+        fileName[11] = '\0'; 
 
-    printf("------------------------------------------------------\n");
-    printf("Filename: %s\n", fileName);
-    printf("First Cluster: %u\n", (rDir->DIR_FstClusHI << 16) | rDir->DIR_FstClusLO);
-    printf("File Size: %u bytes\n", rDir->DIR_FileSize);
-    printf("Year: %u\n", ((rDir->DIR_CrtDate >> 9) & 0x7F) + 1980);
-    printf("Month: %u\n", (rDir->DIR_CrtDate >> 5) & 0x0F);
-    printf("Day: %u\n", (rDir->DIR_CrtDate & 0x1F));
-    printf("Hour: %u\n", (rDir->DIR_CrtTime >> 11) & 0x1F);
-    printf("Min: %u\n", (rDir->DIR_CrtTime >> 5) & 0x3F);
-    printf("Sec: %u\n", (rDir->DIR_CrtTime & 0x1F) * 2);
-    printf("Attributes: ");
-    printf("%c", (rDir->DIR_Attr & 0x20) ? 'A' : '-');
-    printf("%c", (rDir->DIR_Attr & 0x10) ? 'D' : '-');
-    printf("%c", (rDir->DIR_Attr & 0x08) ? 'V' : '-');
-    printf("%c", (rDir->DIR_Attr & 0x04) ? 'S' : '-');
-    printf("%c", (rDir->DIR_Attr & 0x02) ? 'H' : '-');
-    printf("%c\n", (rDir->DIR_Attr & 0x01) ? 'R' : '-');
+        char longFileName[256] = {0};
+        int longNameIndex = 0;
+
+        if(rDir->DIR_Attr == 0x00){
+            continue;
+        }
+        if (rDir->DIR_Attr == 0x0F) {
+            LongFileNameRootDir *LongFileNameRDir = (LongFileNameRootDir *) rDir;
+            if (LongFileNameRDir->LDIR_Ord == 0x40) {
+                longNameIndex = 0;
+            }
+            extractLFNChars(longFileName + longNameIndex, LongFileNameRDir->LDIR_Name1, 10);
+            longNameIndex += 5;
+            extractLFNChars(longFileName + longNameIndex, LongFileNameRDir->LDIR_Name2, 12);
+            longNameIndex += 6;
+            extractLFNChars(longFileName + longNameIndex, LongFileNameRDir->LDIR_Name3, 4);
+            longNameIndex += 2;
+            rDir++;
+            continue;
+        }else {
+            printf("%s", longFileName);
+            if (longFileName[0]) {
+                printf("LFN: %s | Short: %.11s\n", longFileName, rDir->DIR_Name);
+                memset(longFileName, 0, sizeof(longFileName));  // Reset for next file
+            }
+        }
+        printf("------------------------------------------------------\n");
+        printf("Filename: %s\n", fileName);
+        printf("First Cluster: %u\n", (rDir->DIR_FstClusHI << 16) | rDir->DIR_FstClusLO);
+        printf("File Size: %u bytes\n", rDir->DIR_FileSize);
+        printf("Year: %u\n", ((rDir->DIR_CrtDate >> 9) & 0x7F) + 1980);
+        printf("Month: %u\n", (rDir->DIR_CrtDate >> 5) & 0x0F);
+        printf("Day: %u\n", (rDir->DIR_CrtDate & 0x1F));
+        printf("Hour: %u\n", (rDir->DIR_CrtTime >> 11) & 0x1F);
+        printf("Min: %u\n", (rDir->DIR_CrtTime >> 5) & 0x3F);
+        printf("Sec: %u\n", (rDir->DIR_CrtTime & 0x1F) * 2);
+        printf("Attributes: ");
+        printf("%c", (rDir->DIR_Attr & 0x20) ? 'A' : '-');
+        printf("%c", (rDir->DIR_Attr & 0x10) ? 'D' : '-');
+        printf("%c", (rDir->DIR_Attr & 0x08) ? 'V' : '-');
+        printf("%c", (rDir->DIR_Attr & 0x04) ? 'S' : '-');
+        printf("%c", (rDir->DIR_Attr & 0x02) ? 'H' : '-');
+        printf("%c\n", (rDir->DIR_Attr & 0x01) ? 'R' : '-');
+        rDir++;
+    }
 }

@@ -30,9 +30,7 @@ int main(){
     //printNAmountOfFatSection(100,  FAT);
     RootDir *rDir = readRootDir(fd, bs);
     
-    for (int i = 0; i < bs->BPB_RootEntCnt; i++) {
-        printRootDir(&rDir[i]);
-    }
+    printRootDir(rDir, bs->BPB_RootEntCnt);
     
     File *file = openFile(bs,rDir,FAT);
     seekFileCluster(bs,file,fd);

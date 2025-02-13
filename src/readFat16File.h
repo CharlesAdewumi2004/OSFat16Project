@@ -59,7 +59,7 @@ typedef struct __attribute__((__packed__)) {
     uint16_t LDIR_FstClusLO; // MUST be zero
     uint8_t LDIR_Name3[ 4 ]; // Last 2 UNICODE characters
 
-}LongRootDir;
+}LongFileNameRootDir;
 
 typedef struct{ 
     char fullFileName[255];
@@ -81,8 +81,9 @@ void addClustersToLinkedList(int StartingCluster, uint16_t *FAT, LinkedList *roo
 
 //RootDir
 RootDir *readRootDir(int fd, BootSector *bs);
-void printRootDir(RootDir *rDir);
+void printRootDir(RootDir *rDir, int numOfRootEnt);
 RootDir *findFileClusters(const char *fileName, RootDir *rDir, int totalEntries);
+void extractLFNChars(char *buffer, uint8_t *src, int count);
 
 
 //file Handling
