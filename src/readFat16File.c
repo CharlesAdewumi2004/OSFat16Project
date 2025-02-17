@@ -127,8 +127,7 @@ RootDir *findFileClusters(const char *fileName, RootDir *rDir, int totalEntries)
         memset(fatFileName, 0, sizeof(fatFileName));
         memcpy(fatFileName, rDir[i].DIR_Name, 11);
         fatFileName[11] = '\0';
-        if (strncmp(fatFileName, fileName, 8) == 0) {
-            printf("WE MADE IT\n");
+        if (strncmp(fatFileName, fileName, 8) == 0) {   
             return &rDir[i]; 
         }
     }

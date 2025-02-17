@@ -65,6 +65,7 @@ typedef struct{
     char fullFileName[255];
     char partialFileName[12];
     LinkedList *clusterChain;
+    LinkedListString *longFileName;
     int numOfCluster;
     char *fileContents;
 }File;
