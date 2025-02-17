@@ -142,54 +142,55 @@ void extractLFNChars(char *buffer, uint8_t *src, int count) {
         buffer[index++] = src[i];
     }
     buffer[index] = '\0';
-    printf("%s\n", buffer);  
 }
 
-
 void printRootDir(RootDir *rDir, int numOfRootEnt) {
-    char longFileName[256] = {0};  // Store LFN
-    
+    char longFileName[256] = {0};  
+    LinkedListString *longFileNameList = NULL;  
 
     for (int i = 0; i < numOfRootEnt; i++) {
-        char fileName[12];
-        memcpy(fileName, rDir[i].DIR_Name, sizeof(rDir[i].DIR_Name));
-        fileName[11] = '\0'; 
-
         if (rDir[i].DIR_Attr == 0x00) {
             continue;  
         }
 
         if (rDir[i].DIR_Attr == 0x0F) {
             LongFileNameRootDir *lfn = (LongFileNameRootDir *)&rDir[i];
-
+            
             if (lfn->LDIR_Ord & 0x40) {
                 memset(longFileName, 0, sizeof(longFileName));
+                freeLinkedList(&longFileNameList); 
             }
+
             char temp[14] = {0}; 
-            extractLFNChars(temp, lfn->LDIR_Name1, 10);
-            strcat(longFileName, temp);
-            //strcpy(longFileName, temp);
-            //printf("1 %s\n", temp);
-            //memset(temp, 0, sizeof(temp));
-
-            extractLFNChars(temp, lfn->LDIR_Name2, 12);
-            strcat(longFileName, temp);
-            //strcpy(longFileName, temp);
-            //printf("2 %s\n", temp);
-            //memset(temp, 0, sizeof(temp));
-
             extractLFNChars(temp, lfn->LDIR_Name3, 4);
-            strcat(longFileName, temp);
-            //strcpy(longFileName, temp);
-            //printf("3 %s\n", temp);
-            //memset(temp, 0, sizeof(temp));
+            addStringToStartOfList(&longFileNameList, temp);
+            
+            extractLFNChars(temp, lfn->LDIR_Name2, 12);
+            addStringToStartOfList(&longFileNameList, temp);
+            
+            extractLFNChars(temp, lfn->LDIR_Name1, 10);
+            addStringToStartOfList(&longFileNameList, temp);
 
             continue;
         }
 
-        
+        char fileName[12];
+        memcpy(fileName, rDir[i].DIR_Name, sizeof(rDir[i].DIR_Name));
+        fileName[11] = '\0'; 
+
         printf("------------------------------------------------------\n");
-        printf("Long Filename: %s \n", longFileName);
+
+        if (longFileNameList) {
+            LinkedListString *currentNode = longFileNameList;
+            printf("Long Filename: ");
+            while (currentNode) {
+                printf("%s", currentNode->string);
+                currentNode = currentNode->Next;
+            }
+            printf("\n");
+        } else {
+            printf("Long Filename: (None)\n");
+        }
         printf("8.3 Filename: %s\n", fileName);
         printf("First Cluster: %u\n", (rDir[i].DIR_FstClusHI << 16) | rDir[i].DIR_FstClusLO);
         printf("File Size: %u bytes\n", rDir[i].DIR_FileSize);
@@ -206,6 +207,8 @@ void printRootDir(RootDir *rDir, int numOfRootEnt) {
         printf("%c", (rDir[i].DIR_Attr & 0x04) ? 'S' : '-');
         printf("%c", (rDir[i].DIR_Attr & 0x02) ? 'H' : '-');
         printf("%c\n", (rDir[i].DIR_Attr & 0x01) ? 'R' : '-');
+        freeLinkedList(&longFileNameList);
     }
 }
+
 
