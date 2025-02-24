@@ -85,6 +85,7 @@ RootDir *readRootDir(int fd, BootSector *bs);
 void printRootDir(RootDir *rDir, int numOfRootEnt);
 RootDir *findFileClusters(const char *fileName, RootDir *rDir, int totalEntries);
 void extractLFNChars(char *buffer, uint8_t *src, int count);
+void readDirs(RootDir *rDir);
 
 
 //file Handling

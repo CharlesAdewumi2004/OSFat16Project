@@ -6,7 +6,6 @@
 #include <time.h>
 #include "readFat16File.h"
 
-// Function to open a file in FAT16
 File *openFile(BootSector *bs, RootDir *rDir, uint16_t *FAT) {
     File *file = malloc(sizeof(File));
     if (file == NULL) {
@@ -35,7 +34,6 @@ File *openFile(BootSector *bs, RootDir *rDir, uint16_t *FAT) {
     return file;
 }
 
-// Convert a normal filename to FAT16 8.3 format
 void convertToFat83(const char *filename, char *fatName) {
     memset(fatName, ' ', 11); 
     fatName[11] = '\0'; 
@@ -61,7 +59,6 @@ void convertToFat83(const char *filename, char *fatName) {
     }
 }
 
-// Get file name input from user safely
 void getFileName(char inputFileName[255]) {
     printf("Enter filename:\t");
     if (fgets(inputFileName, 255, stdin) == NULL) {
@@ -71,7 +68,6 @@ void getFileName(char inputFileName[255]) {
     inputFileName[strcspn(inputFileName, "\n")] = 0;  
 }
 
-// seek for cluser
 off_t seekFileCluster(BootSector *bs, File *file, int fd) {
     off_t startPoint = bs->BPB_RsvdSecCnt * bs->BPB_BytsPerSec;//bootsector
 
@@ -108,8 +104,6 @@ void readFile(File *file,int fd, BootSector *bs){
 }
 
 
-
-// Close the file and free memory
 void closeFile(File *file) {
     if (file == NULL) return;
     free(file);

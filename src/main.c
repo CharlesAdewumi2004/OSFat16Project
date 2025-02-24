@@ -27,14 +27,17 @@ int main(){
         return -1;
     }
     readCluster(5, FAT);
-    //printNAmountOfFatSection(100,  FAT);
+
     RootDir *rDir = readRootDir(fd, bs);
     
     printRootDir(rDir, bs->BPB_RootEntCnt);
     
     File *file = openFile(bs,rDir,FAT);
-    seekFileCluster(bs,file,fd);
-    readFile(file, fd, bs);
+    if (file != NULL) {
+        seekFileCluster(bs,file,fd);
+        readFile(file, fd, bs);
+    }
+    
 
     close(fd);
     free(bs);
