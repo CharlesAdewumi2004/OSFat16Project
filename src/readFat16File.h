@@ -82,10 +82,12 @@ void addClustersToLinkedList(int StartingCluster, uint16_t *FAT, LinkedList *roo
 
 //RootDir
 RootDir *readRootDir(int fd, BootSector *bs);
-void printRootDir(RootDir *rDir, int numOfRootEnt);
+void printRootDir(RootDir *rDir, int numOfRootEnt, int fd, uint16_t *FAT, BootSector *bs);
 RootDir *findFileClusters(const char *fileName, RootDir *rDir, int totalEntries);
 void extractLFNChars(char *buffer, uint8_t *src, int count);
-void readDirs(RootDir *rDir);
+void readDirs(RootDir *rDir, int fd, uint16_t *FAT, BootSector *bs);
+void printSubDirs(RootDir *rDir, int numOfRootEnt, int fd, uint16_t *FAT, BootSector *bs);
+void trimFilename(char *fileName);
 
 
 //file Handling

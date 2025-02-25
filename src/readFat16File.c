@@ -143,17 +143,142 @@ void extractLFNChars(char *buffer, uint8_t *src, int count) {
     buffer[index] = '\0';
 }
 
-void readDirs(RootDir *rDir){
+off_t getClusterOffset(BootSector *bs, uint16_t cluster) {
+    off_t startOffset = (bs->BPB_RsvdSecCnt + bs->BPB_NumFATs * bs->BPB_FATSz16) * bs->BPB_BytsPerSec;
 
+    startOffset += (bs->BPB_RootEntCnt * 32 + (bs->BPB_BytsPerSec - 1)) / bs->BPB_BytsPerSec * bs->BPB_BytsPerSec;
+
+    return startOffset + (cluster - 2) * (bs->BPB_SecPerClus * bs->BPB_BytsPerSec);
 }
 
-void printRootDir(RootDir *rDir, int numOfRootEnt) {
+RootDir *readDirectoryFromCluster(int fd, BootSector *bs, uint16_t startCluster) {
+
+    off_t dirStart = getClusterOffset(bs, startCluster);
+    int numEntries = (bs->BPB_SecPerClus * bs->BPB_BytsPerSec) / sizeof(RootDir);
+
+    RootDir *directory = malloc(numEntries * sizeof(RootDir));
+    if (!directory) {
+        perror("Error allocating memory for directory");
+        return NULL;
+    }
+
+    lseek(fd, dirStart, SEEK_SET);
+    if (read(fd, directory, numEntries * sizeof(RootDir)) != numEntries * sizeof(RootDir)) {
+        perror("Error reading directory from cluster");
+        free(directory);
+        return NULL;
+    }
+    RootDir *singleDir = directory;
+    char fileName[12];
+    memcpy(fileName, directory->DIR_Name, 10);
+    fileName[11] = '\0';
+    printf("%s", fileName);
+    return directory;
+}
+
+void trimFilename(char *fileName) {
+    for (int i = 10; i >= 0; i--) {
+        if (fileName[i] == ' ' || fileName[i] == '\t') {
+            fileName[i] = '\0'; 
+        } else {
+            break;
+        }
+    }
+}
+
+void printSubDirs(RootDir *rDir, int numOfRootEnt, int fd, uint16_t *FAT, BootSector *bs) {
+    
+    printf("\n%-20s %-10s %-10s %-12s %-10s %-8s\n", 
+           "Filename", "Cluster", "File Size", "Last Modified", "Time", "Attr");
+    printf("------------------------------------------------------------------\n");
+
+    for (int i = 0; i < numOfRootEnt; i++) {
+        if (rDir[i].DIR_Attr == 0x00) {
+            continue;  
+        }
+        if (rDir[i].DIR_Attr == 0x0F) {
+            continue;
+        }
+
+        char fileName[12];
+        memcpy(fileName, rDir[i].DIR_Name, 11);
+        fileName[11] = '\0';  
+        trimFilename(fileName);
+
+        if (strcmp(fileName, ".") == 0 || strcmp(fileName, "..") == 0) {
+            continue;
+        }
+
+        uint16_t firstCluster = (rDir[i].DIR_FstClusHI << 16) | rDir[i].DIR_FstClusLO;
+
+        uint8_t day = rDir[i].DIR_WrtDate & 0x1F;
+        uint8_t month = (rDir[i].DIR_WrtDate >> 5) & 0x0F;
+        uint16_t year = ((rDir[i].DIR_WrtDate >> 9) & 0x7F) + 1980;
+        uint8_t hour = (rDir[i].DIR_WrtTime >> 11) & 0x1F;
+        uint8_t minute = (rDir[i].DIR_WrtTime >> 5) & 0x3F;
+        uint8_t second = (rDir[i].DIR_WrtTime & 0x1F) * 2;
+
+        printf("%-20s %-10u %-10u %02u/%02u %02u:%02u:%02u ",
+               fileName, 
+               firstCluster, 
+               rDir[i].DIR_FileSize,
+               day, month,  
+               hour, minute, second  
+        );
+
+        printf("%c", (rDir[i].DIR_Attr & 0x20) ? 'A' : '-');  
+        printf("%c", (rDir[i].DIR_Attr & 0x10) ? 'D' : '-');  
+        printf("%c", (rDir[i].DIR_Attr & 0x08) ? 'V' : '-');  
+        printf("%c", (rDir[i].DIR_Attr & 0x04) ? 'S' : '-'); 
+        printf("%c", (rDir[i].DIR_Attr & 0x02) ? 'H' : '-');  
+        printf("%c\n", (rDir[i].DIR_Attr & 0x01) ? 'R' : '-'); 
+
+        if (rDir[i].DIR_Attr & 0x10) { 
+            readDirs(&rDir[i], fd, FAT, bs);
+        }
+    }
+}
+
+void readDirs(RootDir *rDir, int fd, uint16_t *FAT, BootSector *bs) {
+    if (!(rDir->DIR_Attr & 0x10)) { 
+        printf("Error: Not a directory.\n");
+        return; 
+    }
+
+    uint16_t startingClusterNum = (rDir->DIR_FstClusHI << 16) | rDir->DIR_FstClusLO;
+    if (startingClusterNum < 2) {
+        printf("Error: Invalid cluster number for directory.\n");
+        return;
+    }
+
+    char dirName[12];
+    memcpy(dirName, rDir->DIR_Name, 11);
+    dirName[11] = '\0';
+    trimFilename(dirName);
+
+    printf("\n Reading: %s\n", dirName);
+
+    RootDir *subDir = readDirectoryFromCluster(fd, bs, startingClusterNum);
+    if (!subDir) {
+        printf("Error reading directory contents.\n");
+        return;
+    }
+
+    printSubDirs(subDir, bs->BPB_RootEntCnt, fd, FAT, bs);
+
+    free(subDir);
+}
+
+void printRootDir(RootDir *rDir, int numOfRootEnt, int fd, uint16_t *FAT, BootSector *bs) {
     char longFileName[256] = {0};  
     LinkedListString *longFileNameList = NULL;  
 
     for (int i = 0; i < numOfRootEnt; i++) {
         if (rDir[i].DIR_Attr == 0x00) {
             continue;  
+        }
+        if(rDir[i].DIR_Attr == 0x10){
+            readDirs(&rDir[i], fd, FAT, bs);
         }
 
         if (rDir[i].DIR_Attr == 0x0F) {
@@ -222,9 +347,6 @@ void printRootDir(RootDir *rDir, int numOfRootEnt) {
         printf("%c\n", (rDir[i].DIR_Attr & 0x01) ? 'R' : '-'); 
 
         freeLinkedList(&longFileNameList);
-
-
-     
     }
 }
 

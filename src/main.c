@@ -30,7 +30,7 @@ int main(){
 
     RootDir *rDir = readRootDir(fd, bs);
     
-    printRootDir(rDir, bs->BPB_RootEntCnt);
+    printRootDir(rDir, bs->BPB_RootEntCnt, fd, FAT,bs);
     
     File *file = openFile(bs,rDir,FAT);
     if (file != NULL) {
