@@ -65,6 +65,7 @@ void getFileName(char inputFileName[255]) {
         printf("Error reading input.\n");
         return;
     }
+
     inputFileName[strcspn(inputFileName, "\n")] = 0;  
 }
 

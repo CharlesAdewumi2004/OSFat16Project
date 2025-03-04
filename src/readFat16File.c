@@ -302,13 +302,13 @@ void printRootDir(RootDir *rDir, int numOfRootEnt, int fd, uint16_t *FAT, BootSe
             continue;
         }
 
-        char fileName[12];
-        memcpy(fileName, rDir[i].DIR_Name, sizeof(rDir[i].DIR_Name));
-        fileName[11] = '\0'; 
+        char shortFileName[12];
+        memcpy(shortFileName, rDir[i].DIR_Name, sizeof(rDir[i].DIR_Name));
+        shortFileName[11] = '\0';
 
-        printf("\n%-20s %-10s %-10s %-12s %-10s %-8s\n", 
-            "Filename", "Cluster", "File Size", "Last Modified", "Time", "Attr");
-        printf("------------------------------------------------------------------\n");
+        printf("\n%-20s %-10s %-10s %-12s %-10s %-8s %-40s\n",
+            "8.3 Filename", "Cluster", "File Size", "Last Modified", "Time", "Attr", "Filename");
+        printf("---------------------------------------------------------------------------------------------------------------------\n");
 
         char longFileNameBuffer[256] = "(None)";  
 
@@ -320,7 +320,7 @@ void printRootDir(RootDir *rDir, int numOfRootEnt, int fd, uint16_t *FAT, BootSe
             currentNode = currentNode->Next;
         }
         } else {
-        strcpy(longFileNameBuffer, fileName);
+        strcpy(longFileNameBuffer, shortFileName);
         }
 
         uint16_t firstCluster = (rDir[i].DIR_FstClusHI << 16) | rDir[i].DIR_FstClusLO;
@@ -331,20 +331,22 @@ void printRootDir(RootDir *rDir, int numOfRootEnt, int fd, uint16_t *FAT, BootSe
         uint8_t minute = (rDir[i].DIR_WrtTime >> 5) & 0x3F;
         uint8_t second = (rDir[i].DIR_WrtTime & 0x1F) * 2;
 
-        printf("%-20s %-10u %-10u %02u/%02u/%04u %02u:%02u:%02u ",
-            longFileNameBuffer, 
+        printf("%-20s %-10u %-10u %02u/%02u/%04u %02u:%02u:%02u  ",
+            shortFileName,
             firstCluster, 
             rDir[i].DIR_FileSize,
             day, month, year,  
-            hour, minute, second  
+            hour, minute, second
         );
 
-        printf("%c", (rDir[i].DIR_Attr & 0x20) ? 'A' : '-');  
-        printf("%c", (rDir[i].DIR_Attr & 0x10) ? 'D' : '-');  
-        printf("%c", (rDir[i].DIR_Attr & 0x08) ? 'V' : '-');  
-        printf("%c", (rDir[i].DIR_Attr & 0x04) ? 'S' : '-'); 
-        printf("%c", (rDir[i].DIR_Attr & 0x02) ? 'H' : '-');  
-        printf("%c\n", (rDir[i].DIR_Attr & 0x01) ? 'R' : '-'); 
+        printf("%-2c", (rDir[i].DIR_Attr & 0x20) ? 'A' : '-');
+        printf("%-2c", (rDir[i].DIR_Attr & 0x10) ? 'D' : '-');
+        printf("%-2c", (rDir[i].DIR_Attr & 0x08) ? 'V' : '-');
+        printf("%-2c", (rDir[i].DIR_Attr & 0x04) ? 'S' : '-');
+        printf("%-2c", (rDir[i].DIR_Attr & 0x02) ? 'H' : '-');
+        printf("%-2c", (rDir[i].DIR_Attr & 0x01) ? 'R' : '-');
+
+        printf("%-40s\n", longFileNameBuffer);
 
         freeLinkedList(&longFileNameList);
     }
