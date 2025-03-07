@@ -26,7 +26,7 @@ int main(){
     if (FAT == NULL) {
         return -1;
     }
-    readCluster(6, FAT);
+    readCluster(5, FAT);
 
     RootDir *rDir = readRootDir(fd, bs);
     
