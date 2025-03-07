@@ -168,7 +168,6 @@ RootDir *readDirectoryFromCluster(int fd, BootSector *bs, uint16_t startCluster)
         free(directory);
         return NULL;
     }
-    RootDir *singleDir = directory;
     char fileName[12];
     memcpy(fileName, directory->DIR_Name, 10);
     fileName[11] = '\0';
@@ -213,7 +212,6 @@ void printSubDirs(RootDir *rDir, int numOfRootEnt, int fd, uint16_t *FAT, BootSe
 
         uint8_t day = rDir[i].DIR_WrtDate & 0x1F;
         uint8_t month = (rDir[i].DIR_WrtDate >> 5) & 0x0F;
-        uint16_t year = ((rDir[i].DIR_WrtDate >> 9) & 0x7F) + 1980;
         uint8_t hour = (rDir[i].DIR_WrtTime >> 11) & 0x1F;
         uint8_t minute = (rDir[i].DIR_WrtTime >> 5) & 0x3F;
         uint8_t second = (rDir[i].DIR_WrtTime & 0x1F) * 2;
